@@ -1011,7 +1011,7 @@
         showMsg("postMsg", data.message, false);
         return;
       }
-
+      
       // Show the new comment (from the API response) under that post, no reload
       const c = data.comment;
       document.getElementById("comments-" + postId).insertAdjacentHTML(
@@ -1020,7 +1020,13 @@
       );
       input.value = "";
     }
-
+    
+      document.getElementById("feed").addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && event.target.id.startsWith("comment-")) {
+          const postId = event.target.id.replace("comment-", "");
+          addComment(Number(postId));
+        }
+      });
     // ================= ON PAGE LOAD =================
 
     async function start() {
@@ -1038,3 +1044,5 @@
 
 </body>
 </html>
+
+
