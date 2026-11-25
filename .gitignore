@@ -1,0 +1,8 @@
+# Packages (npm install brings them back)
+node_modules/
+
+# Secrets: passwords and keys
+.env
+
+# Photos users uploaded
+uploads/

@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AmbakSocial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Poppins:wght@400;500;600;700&display=swap">
+  <style>
+    /* ================= COLORS: black & white theme (change here, used everywhere) ================= */
+    :root {
+      --bg: #0a0a0b;          /* page */
+      --card: #141416;        /* cards */
+      --field: #1d1d21;       /* inputs, comments */
+      --line: #2a2a2f;        /* borders */
+      --ink: #f4f4f5;         /* main text (white) */
+      --muted: #8b8b93;       /* grey text */
+      --btn: #ffffff;         /* main button (white) */
+      --btn-ink: #0a0a0b;     /* text on main button (black) */
+      --red: #ff5a6e;
+      --green: #4ade80;
+      --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.9);
+    }
+
+    /* ================= PAGE ================= */
+    * { box-sizing: border-box; }
+    body { font-family: "Poppins", "Segoe UI", Roboto, Arial, sans-serif; margin: 0; color: var(--ink); min-height: 100vh; background: var(--bg); overflow-x: hidden; }
+
+    /* Soft white glow behind everything (only for looks) */
+    .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--bg); }
+    .orb { position: absolute; border-radius: 50%; filter: blur(90px); background: #ffffff; opacity: 0.05; animation: drift 22s ease-in-out infinite alternate; }
+    .orb.o1 { width: 420px; height: 420px; top: -140px; left: -120px; }
+    .orb.o2 { width: 380px; height: 380px; top: 35%; right: -160px; animation-delay: -7s; }
+    .orb.o3 { width: 320px; height: 320px; bottom: -140px; left: 25%; animation-delay: -14s; opacity: 0.035; }
+    @keyframes drift { to { transform: translate(50px, 40px) scale(1.1); } }
+
+    /* ================= LOGIN / SIGNUP / OTP / RESET BOXES ================= */
+    .box { background: var(--card); width: 380px; max-width: calc(100% - 32px); margin: 60px auto; padding: 34px 34px 28px; border-radius: 22px; text-align: center;
+      border: 1px solid var(--line); box-shadow: var(--shadow); animation: rise 0.45s ease-out; }
+    @keyframes rise { from { transform: translateY(16px); opacity: 0.4; } }
+
+    h1 { font-family: "Grand Hotel", "Brush Script MT", cursive; font-size: 50px; font-weight: normal; margin: 0 0 18px; line-height: 1.1; color: var(--ink); }
+
+    input, select, textarea { width: 100%; padding: 12px 14px; margin: 6px 0; border: 1.5px solid var(--line); border-radius: 12px; background: var(--field); font-size: 14px; font-family: inherit; color: var(--ink); transition: border-color .2s, box-shadow .2s; }
+    input::placeholder, textarea::placeholder { color: #6b6b73; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #ffffff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08); }
+    textarea { resize: vertical; }
+    select { color-scheme: dark; }
+
+    /* Main button: white with black text, pushes down a little when clicked */
+    button { width: 100%; padding: 11px; margin-top: 12px; background: var(--btn); color: var(--btn-ink); border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit;
+      box-shadow: 0 3px 0 #9a9aa2; transition: transform .12s, box-shadow .12s, background .2s; }
+    button:hover { background: #e7e7ea; }
+    button:active { transform: translateY(2px); box-shadow: 0 1px 0 #9a9aa2; }
+    button:disabled { opacity: 0.5; cursor: default; }
+
+    .link { color: var(--ink); cursor: pointer; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+    .hint { color: var(--muted); font-size: 12px; margin: 6px 0; font-variant-numeric: tabular-nums; }
+    .switch { font-size: 14px; margin: 20px 0 0; color: var(--muted); }
+
+    /* Forgot password (left) + Show password (right) in one line */
+    .row { display: flex; justify-content: space-between; align-items: center; margin: 2px 0 4px; }
+    .toggle { display: block; text-align: right; font-size: 12px; color: var(--ink); cursor: pointer; font-weight: 500; }
+    .forgot { font-size: 12px; color: var(--muted); cursor: pointer; }
+
+    /* Messages */
+    .error { color: var(--red); font-weight: 600; font-size: 14px; }
+    .success { color: var(--green); font-weight: 600; font-size: 14px; }
+    .field-error { color: var(--red); font-size: 12px; text-align: left; margin: 0 0 4px 4px; }
+
+    /* ================= HOME (after login) ================= */
+    .home { width: 500px; max-width: calc(100% - 32px); margin: 20px auto 40px; }
+
+    .topbar { display: flex; justify-content: space-between; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px 18px; box-shadow: var(--shadow); }
+    .topbar h2 { font-size: 18px; margin: 0; font-weight: 600; }
+    .topbar button { width: auto; margin: 0; padding: 8px 18px; background: transparent; color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
+    .topbar button:hover { background: var(--field); }
+    .topbar button:active { transform: none; }
+
+    /* Post card: dark card, small gap between posts */
+    .post { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin: 12px 0; box-shadow: var(--shadow); }
+    .card-title { font-weight: 600; margin: 0 0 10px; font-size: 16px; }
+
+    .post-head { display: flex; align-items: center; gap: 10px; }
+    .post-head b { font-weight: 600; }
+    .delete-btn { width: auto; margin: 0 0 0 auto; padding: 6px 10px; background: none; border: none; font-size: 16px; border-radius: 10px; box-shadow: none; filter: grayscale(1) brightness(1.6); }
+    .delete-btn:hover { background: #2a1519; filter: none; }
+    .delete-btn:active { transform: none; box-shadow: none; }
+
+    /* Avatar: white letter on black, with a white ring */
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: #26262b; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700;
+      box-shadow: 0 0 0 2px var(--card), 0 0 0 4px #ffffff; flex-shrink: 0; }
+    .post-content { font-size: 15px; line-height: 1.55; margin: 12px 0; white-space: pre-wrap; word-wrap: break-word; }
+
+    .actions { display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding-top: 12px; }
+    .like-btn { width: auto; margin: 0; padding: 7px 14px; background: var(--field); color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
+    .like-btn:hover { background: #26262b; }
+    .like-btn:active { transform: translateY(1px); box-shadow: none; }
+
+    .comments { margin-top: 10px; }
+    .comment { font-size: 14px; margin: 6px 0; word-wrap: break-word; background: var(--field); padding: 7px 11px; border-radius: 12px; }
+    .comment-row { display: flex; gap: 8px; margin-top: 12px; }
+    .comment-row input { margin: 0; }
+    .comment-row button { width: auto; margin: 0; padding: 9px 18px; }
+
+    .empty { text-align: center; color: var(--muted); padding: 30px 0; }
+    .load-more { background: transparent; color: var(--ink); border: 1.5px solid var(--line); margin: 4px 0 30px; box-shadow: none; }
+    .load-more:hover { background: var(--card); }
+    .load-more:active { transform: none; }
+
+    /* ================= POST IMAGE ================= */
+    /* Add photo + Post: one row, same height and width */
+    .post-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .photo-btn, .post-btn { flex: 1; height: 44px; margin: 0; padding: 0 12px; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .photo-btn { background: var(--field); color: var(--ink); border: 1.5px solid var(--line); transition: background .2s; }
+    .photo-btn:hover { background: #26262b; }
+    .post-btn { border: none; }
+
+    /* Chosen photo: full width on top, × button in its corner */
+    .preview-box { position: relative; margin-bottom: 8px; }
+    .preview-img { display: block; width: 100%; max-height: 320px; object-fit: cover; border-radius: 14px; }
+    .remove-img { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; margin: 0; padding: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.7); color: white; font-size: 18px; line-height: 32px; box-shadow: none; }
+    .remove-img:hover { background: rgba(0, 0, 0, 0.9); }
+    .remove-img:active { transform: none; }
+    .post-image { display: block; width: 100%; max-height: 500px; object-fit: cover; border-radius: 14px; margin: 12px 0; }
+    .post-content:empty { display: none; }
+
+    /* ================= SHARE SCREEN (popup over the page) ================= */
+    .share-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .share-sheet { background: var(--card); border: 1px solid var(--line); width: 420px; max-width: 100%; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.9); animation: rise 0.3s ease-out; }
+    .share-top { display: flex; align-items: center; justify-content: center; position: relative; padding: 16px; border-bottom: 1px solid var(--line); font-weight: 600; font-size: 16px; }
+    .share-close { position: absolute; right: 10px; top: 8px; width: auto; margin: 0; padding: 4px 12px; background: none; color: var(--ink); font-size: 22px; font-weight: 400; box-shadow: none; }
+    .share-close:hover { background: var(--field); }
+    .share-close:active { transform: none; }
+    .share-preview { margin: 14px 16px; padding: 12px 14px; background: var(--field); border-radius: 14px; font-size: 14px; }
+    .share-preview p { margin: 4px 0 0; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-wrap: break-word; }
+    .share-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 6px 12px 18px; }
+    .share-app { display: flex; flex-direction: column; align-items: center; gap: 7px; width: auto; margin: 0; padding: 8px 0; background: none; color: var(--ink); font-size: 12px; font-weight: 500; border-radius: 14px; box-shadow: none; }
+    .share-app:hover { background: var(--field); }
+    .share-app:active { transform: none; }
+    .share-icon { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 17px; font-weight: 700; transition: transform .2s; box-shadow: 0 0 0 1px #3a3a40; }
+    .share-app:hover .share-icon { transform: translateY(-3px) scale(1.05); }
+    .share-link { display: flex; gap: 8px; padding: 12px 16px 18px; border-top: 1px solid var(--line); }
+    .share-link input { margin: 0; font-size: 13px; color: var(--muted); }
+    .share-link button { width: auto; margin: 0; padding: 8px 18px; }
+
+    /* Post opened from a shared link */
+    .post.highlight { border-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15); }
+
+    /* Phones: a bit less padding */
+    @media (max-width: 480px) {
+      .box { padding: 28px 20px 22px; margin: 30px auto; }
+      .post { padding: 14px; border-radius: 16px; }
+      .share-apps { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* People who turn off animations in their device settings */
+    @media (prefers-reduced-motion: reduce) {
+      *, .orb { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Soft glow background (only for looks) -->
+  <div class="bg" aria-hidden="true">
+    <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+  </div>
+
+  <!-- 1. LOGIN -->
+  <div class="box" id="loginBox">
+    <h1>AmbakSocial</h1>
+
+    <input id="loginId" placeholder="Username, mobile or email">
+    <p class="field-error" id="loginIdError"></p>
+
+    <input id="loginPassword" type="password" placeholder="Password">
+    <p class="field-error" id="loginPasswordError"></p>
+    <div class="row">
+      <span class="forgot" onclick="openReset()">Forgot password?</span>
+      <span class="toggle" id="loginToggle" onclick="togglePassword('loginPassword', 'loginToggle')">Show password</span>
+    </div>
+
+    <button onclick="login()">Log In</button>
+    <p id="loginMsg"></p>
+    <p class="switch">Don't have an account? <span class="link" onclick="openSignup()">Create account</span></p>
+  </div>
+
+  <!-- 2. CREATE ACCOUNT -->
+  <div class="box" id="signupBox" style="display: none;">
+    <h1>AmbakSocial</h1>
+    <p class="hint">Create your account</p>
+
+    <input id="name" placeholder="Full name *">
+    <p class="field-error" id="nameError"></p>
+
+    <input id="username" placeholder="Username *">
+    <p class="field-error" id="usernameError"></p>
+
+    <input id="mobile" placeholder="Mobile number *" maxlength="10">
+    <p class="field-error" id="mobileError"></p>
+
+    <input id="email" placeholder="Email (optional)">
+    <p class="field-error" id="emailError"></p>
+
+    <input id="signupPassword" type="password" placeholder="Password *">
+    <span class="toggle" id="signupToggle" onclick="togglePassword('signupPassword', 'signupToggle')">Show password</span>
+    <p class="field-error" id="passwordError"></p>
+    <p class="hint">Min 8 characters, 1 capital letter, 1 number, 1 special character</p>
+
+    <p class="hint">Where should we send the OTP?</p>
+    <select id="verifyBy">
+      <option value="mobile">Mobile</option>
+      <option value="email">Email</option>
+    </select>
+
+    <button onclick="sendOtp()">Send OTP</button>
+    <p id="signupMsg"></p>
+    <p class="switch">Have an account? <span class="link" onclick="openLogin()">Log in</span></p>
+  </div>
+
+  <!-- 3. OTP VERIFY -->
+  <div class="box" id="otpBox" style="display: none;">
+    <h1>AmbakSocial</h1>
+    <p id="otpMsg"></p>
+    <input id="otp" placeholder="Enter 6 digit OTP" maxlength="6">
+    <p class="field-error" id="otpError"></p>
+    <button onclick="verifyOtp()">Verify</button>
+    <p class="hint">(Demo: OTP is shown in the server terminal)</p>
+  </div>
+
+
+  <!-- 5. FORGOT PASSWORD -->
+  <div class="box" id="resetBox" style="display: none;">
+    <h1>AmbakSocial</h1>
+    <p class="hint">Reset your password</p>
+
+    <input id="resetId" placeholder="mobile or email">
+    <p class="field-error" id="resetIdError"></p>
+    <button onclick="sendResetOtp()">Send OTP</button>
+    <p id="resetMsg"></p>
+
+    <div id="resetStep2" style="display: none;">
+      <input id="resetOtp" placeholder="Enter 6 digit OTP" maxlength="6">
+      <p class="field-error" id="resetOtpError"></p>
+
+      <input id="newPassword" type="password" placeholder="New password *">
+      <span class="toggle" id="newPasswordToggle" onclick="togglePassword('newPassword', 'newPasswordToggle')">Show password</span>
+      <p class="field-error" id="newPasswordError"></p>
+      <p class="hint">Min 8 characters, 1 capital letter, 1 number, 1 special character</p>
+
+      <button onclick="resetPassword()">Reset Password</button>
+    </div>
+
+    <p class="switch"><span class="link" onclick="openLogin()">Back to login</span></p>
+  </div>
+
+
+
+  <!-- 4. HOME -->
+  <div class="home" id="homeBox" style="display: none;">
+    <div class="topbar">
+      <h2 id="welcome"></h2>
+      <button onclick="logout()">Logout</button>
+    </div>
+    <div class="post">
+      <p class="card-title">Create a post</p>
+      <!-- Preview of the chosen photo: photo first, caption box below it (like Instagram) -->
+      <div id="imagePreviewBox" class="preview-box" style="display: none;">
+        <img id="imagePreview" class="preview-img" alt="Selected image">
+        <button type="button" class="remove-img" onclick="removeImage()" title="Remove photo">×</button>
+      </div>
+
+      <textarea id="newPost" rows="3" placeholder="create Post?"></textarea>
+
+      <!-- Image picker: the real file input is hidden, the label is the button -->
+      <input type="file" id="postImage" accept="image/*" style="display: none;" onchange="showImagePreview()">
+
+      <!-- Two buttons in one row, same size -->
+      <div class="post-actions">
+        <label for="postImage" class="photo-btn">📷 <span id="photoBtnText">Add photo</span></label>
+        <button class="post-btn" onclick="createPost()">Post</button>
+      </div>
+      <p id="postMsg"></p>
+    </div>
+    <div id="feed"></div>
+    <button id="loadMoreBtn" class="load-more" style="display: none;" onclick="loadMore()">Load more</button>
+  </div>
+
+  <!-- 5. SHARE SCREEN (opens over the page when Share is clicked) -->
+  <div class="share-overlay" id="shareBox" style="display: none;" onclick="closeShareSheet()">
+    <div class="share-sheet" onclick="event.stopPropagation()">
+      <div class="share-top">
+        Share post
+        <button class="share-close" onclick="closeShareSheet()">×</button>
+      </div>
+
+      <div class="share-preview">
+        <b id="sharePostUser"></b>
+        <p id="sharePostText"></p>
+      </div>
+
+      <div class="share-apps">
+        <button class="share-app" onclick="shareTo('whatsapp')"><span class="share-icon" style="background: #25d366;">WA</span>WhatsApp</button>
+        <button class="share-app" onclick="shareTo('email')"><span class="share-icon" style="background: #ea4335;">✉</span>Email</button>
+        <button class="share-app" onclick="shareTo('telegram')"><span class="share-icon" style="background: #229ed9;">TG</span>Telegram</button>
+        <button class="share-app" onclick="shareTo('x')"><span class="share-icon" style="background: #111;">X</span>X</button>
+        <button class="share-app" onclick="shareTo('facebook')"><span class="share-icon" style="background: #1877f2;">FB</span>Facebook</button>
+        <button class="share-app" onclick="shareTo('copy')"><span class="share-icon" style="background: #8e8e8e;">🔗</span>Copy link</button>
+        <button class="share-app" id="shareMore" onclick="shareTo('other')"><span class="share-icon" style="background: #c13584;">⋯</span>More</button>
+      </div>
+
+      <div class="share-link">
+        <input id="shareLinkInput" readonly>
+        <button onclick="shareTo('copy')">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let pendingMobile = "";
+
+    // ================= HELPERS =================
+
+    // Show one box, hide the others
+    function show(boxId) {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("signupBox").style.display = "none";
+      document.getElementById("otpBox").style.display = "none";
+      document.getElementById("homeBox").style.display = "none";
+      document.getElementById("resetBox").style.display = "none";  
+      document.getElementById(boxId).style.display = "block";
+    }
+
+    // Make user text safe so it is not treated as HTML (prevents XSS)
+    function safe(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    // Show a general message: green for success, red for error
+    function showMsg(elementId, text, isSuccess) {
+      const element = document.getElementById(elementId);
+      element.innerText = text;
+      if (isSuccess) {
+        element.className = "success";
+      } else {
+        element.className = "error";
+      }
+    }
+
+    // Show a red error under one field
+    function setFieldError(field, message) {
+      document.getElementById(field + "Error").innerText = message;
+    }
+
+    // Remove red errors under the given fields
+    function clearFieldErrors(fields) {
+      for (const field of fields) {
+        document.getElementById(field + "Error").innerText = "";
+      }
+    }
+
+    // Show / hide password
+    function togglePassword(inputId, toggleId) {
+      const input = document.getElementById(inputId);
+      const toggle = document.getElementById(toggleId);
+      if (input.type === "password") {
+        input.type = "text";
+        toggle.innerText = "Hide password";
+      } else {
+        input.type = "password";
+        toggle.innerText = "Show password";
+      }
+    }
+
+    // ================= VALIDATION =================
+
+    // Check password rules, return error text or null
+    function checkPassword(password) {
+      if (password.length < 8) {
+        return "Password must be at least 8 characters";
+      }
+      if (!/[A-Z]/.test(password)) {
+        return "Password must have at least one capital letter";
+      }
+      if (!/[0-9]/.test(password)) {
+        return "Password must have at least one number";
+      }
+      if (!/[^A-Za-z0-9]/.test(password)) {
+        return "Password must have at least one special character";
+      }
+      return null;
+    }
+
+    // Check all signup fields, return an object of errors
+    function validateSignupForm(name, username, mobile, email, password, verifyBy) {
+      const errors = {};
+
+      if (name === "") {
+        errors.name = "Full name is required";
+      }
+
+      if (username === "") {
+        errors.username = "Username is required";
+      } else if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+        errors.username = "Username must be 3-20 characters: letters, numbers or _";
+      }
+
+      if (mobile === "") {
+        errors.mobile = "Mobile number is required";
+      } else if (!/^[6-9][0-9]{9}$/.test(mobile)) {
+        errors.mobile = "Mobile must be 10 digits and start with 6, 7, 8 or 9";
+      }
+
+      if (email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.email = "Please enter a valid email";
+      } else if (verifyBy === "email" && email === "") {
+        errors.email = "Email is required to verify via email";
+      }
+
+      const passwordError = checkPassword(password);
+      if (passwordError) {
+        errors.password = passwordError;
+      }
+
+      return errors;
+    }
+
+    // ================= OPEN SCREENS (with clean form) =================
+
+    function openSignup() {
+      document.getElementById("name").value = "";
+      document.getElementById("username").value = "";
+      document.getElementById("mobile").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("signupPassword").value = "";
+      document.getElementById("signupPassword").type = "password";
+      document.getElementById("signupToggle").innerText = "Show password";
+      document.getElementById("verifyBy").value = "mobile";
+      document.getElementById("signupMsg").innerText = "";
+      clearFieldErrors(["name", "username", "mobile", "email", "password"]);
+      show("signupBox");
+    }
+
+    function openLogin() {
+      document.getElementById("loginId").value = "";
+      document.getElementById("loginPassword").value = "";
+      document.getElementById("loginPassword").type = "password";
+      document.getElementById("loginToggle").innerText = "Show password";
+      document.getElementById("loginMsg").innerText = "";
+      clearFieldErrors(["loginId", "loginPassword"]);
+      show("loginBox");
+    }
+
+    // ================= SIGNUP STEP 1: SEND OTP =================
+
+    async function sendOtp() {
+      const name = document.getElementById("name").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const mobile = document.getElementById("mobile").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      const verifyBy = document.getElementById("verifyBy").value;
+
+      // Clear old errors
+      clearFieldErrors(["name", "username", "mobile", "email", "password"]);
+      document.getElementById("signupMsg").innerText = "";
+
+      // Check fields on frontend first
+      const errors = validateSignupForm(name, username, mobile, email, password, verifyBy);
+      if (Object.keys(errors).length > 0) {
+        for (const field in errors) {
+          setFieldError(field, errors[field]);
+        }
+        return;
+      }
+
+      const response = await fetch("/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, username, mobile, email, password, verifyBy }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        pendingMobile = mobile;
+        document.getElementById("otp").value = "";
+        clearFieldErrors(["otp"]);
+        showMsg("otpMsg", data.message, true);
+        show("otpBox");
+      } else if (data.field) {
+        setFieldError(data.field, data.message);
+      } else {
+        showMsg("signupMsg", data.message, false);
+      }
+    }
+
+    // ================= SIGNUP STEP 2: VERIFY OTP =================
+
+    async function verifyOtp() {
+      const otp = document.getElementById("otp").value.trim();
+
+      clearFieldErrors(["otp"]);
+
+      if (!/^[0-9]{6}$/.test(otp)) {
+        setFieldError("otp", "OTP must be 6 digits");
+        return;
+      }
+
+      const response = await fetch("/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile: pendingMobile, otp }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        openSignup();          // clear the signup form
+        openLogin();           // go to clean login page
+        showMsg("loginMsg", data.message, true);
+      } else {
+        setFieldError("otp", data.message);
+      }
+    }
+
+    // ================= LOGIN =================
+
+    async function login() {
+      const loginId = document.getElementById("loginId").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      clearFieldErrors(["loginId", "loginPassword"]);
+      document.getElementById("loginMsg").innerText = "";
+
+      let hasError = false;
+      if (loginId === "") {
+        setFieldError("loginId", "Username, mobile or email is required");
+        hasError = true;
+      }
+      if (password === "") {
+        setFieldError("loginPassword", "Password is required");
+        hasError = true;
+      }
+      if (hasError) {
+        return;
+      }
+
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loginId, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        openHome(data.username);
+      } else if (data.field) {
+        setFieldError(data.field, data.message);
+      } else {
+        showMsg("loginMsg", data.message, false);
+      }
+    }
+
+    let currentUser = ""; // who is logged in (to show Delete only on my own posts)
+
+    function openHome(username) {
+      currentUser = username;
+      document.getElementById("welcome").innerText = "Hi, " + username;
+      document.getElementById("postMsg").innerText = "";
+      show("homeBox");
+      loadPosts();
+    }
+
+    async function logout() {
+      await fetch("/logout", { method: "POST" });
+      openLogin();
+      showMsg("loginMsg", "Logged out successfully", true);
+    }
+
+    // ================= FORGOT PASSWORD =================
+
+    let resetLoginId = "";
+    // Kis account ka password badalna hai, yaad rakho (step 2 mein lagega)
+
+    function openReset() {
+      document.getElementById("resetId").value = "";
+      document.getElementById("resetOtp").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("newPassword").type = "password";
+      document.getElementById("newPasswordToggle").innerText = "Show password";
+      document.getElementById("resetMsg").innerText = "";
+      document.getElementById("resetStep2").style.display = "none";
+      clearFieldErrors(["resetId", "resetOtp", "newPassword"]);
+      show("resetBox");
+    }
+
+    async function sendResetOtp() {
+      const loginId = document.getElementById("resetId").value.trim();
+
+      clearFieldErrors(["resetId"]);
+      document.getElementById("resetMsg").innerText = "";
+
+           if (loginId === "") {
+        setFieldError("resetId", "Mobile number or email is required");
+        return;
+      }
+
+      const isMobile = /^[6-9][0-9]{9}$/.test(loginId);
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginId);
+      if (!isMobile && !isEmail) {
+        setFieldError("resetId", "Please enter a valid mobile number or email");
+        return;
+      }
+
+      const response = await fetch("/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loginId }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        resetLoginId = loginId;
+        showMsg("resetMsg", data.message, true);
+        document.getElementById("resetStep2").style.display = "block";
+      } else if (data.field) {
+        setFieldError(data.field, data.message);
+      } else {
+        showMsg("resetMsg", data.message, false);
+      }
+    }
+
+    async function resetPassword() {
+      const otp = document.getElementById("resetOtp").value.trim();
+      const newPassword = document.getElementById("newPassword").value;
+
+      clearFieldErrors(["resetOtp", "newPassword"]);
+
+      let hasError = false;
+      if (!/^[0-9]{6}$/.test(otp)) {
+        setFieldError("resetOtp", "OTP must be 6 digits");
+        hasError = true;
+      }
+      const passwordError = checkPassword(newPassword);
+      if (passwordError) {
+        setFieldError("newPassword", passwordError);
+        hasError = true;
+      }
+      if (hasError) {
+        return;
+      }
+
+      const response = await fetch("/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loginId: resetLoginId, otp, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        openLogin();
+        showMsg("loginMsg", data.message, true);
+      } else if (data.field) {
+        setFieldError(data.field, data.message);
+      } else {
+        showMsg("resetMsg", data.message, false);
+      }
+    }
+
+    // ================= POSTS =================
+
+    // Build the HTML for one post (used by loadPosts and createPost)
+    function postHtml(post) {
+      let commentsHtml = "";
+      for (const c of post.comments) {
+        commentsHtml += `<p class="comment"><b>${safe(c.username)}</b> ${safe(c.comment_text)}</p>`;
+      }
+
+      let likeText = "🤍 Like";
+      if (post.liked_by_me > 0) {
+        likeText = "❤️";
+      }
+
+      return `
+        <div class="post" id="post-${post.id}">
+          <div class="post-head">
+            <div class="avatar">${safe(post.username.charAt(0).toUpperCase())}</div>
+            <b>${safe(post.username)}</b>
+            ${post.username === currentUser ? `<button class="delete-btn" onclick="deletePost(${post.id})" title="Delete post">🗑️</button>` : ""}
+          </div>
+          <p class="post-content">${safe(post.content)}</p>
+          ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image">` : ""}
+          <div class="actions">
+            <button class="like-btn" id="like-btn-${post.id}" onclick="likePost(${post.id})">${likeText}</button>
+            <span class="hint" id="like-count-${post.id}">${post.like_count} likes</span>
+            <button class="like-btn" onclick="openShareSheet(${post.id})">➤ Share</button>
+            <span class="hint" id="share-count-${post.id}">${post.share_count} shares</span>
+          </div>
+          <div class="comments" id="comments-${post.id}">${commentsHtml}</div>
+          <div class="comment-row">
+            <input id="comment-${post.id}" placeholder="Write a comment...">
+            <button onclick="addComment(${post.id})">Comment</button>
+          </div>
+        </div>
+      `;
+    }
+
+    let nextBefore = null; // id of the oldest post on screen (for "Load more")
+
+    // Show or hide the "Load more" button
+    function updateLoadMore(data) {
+      nextBefore = data.nextBefore;
+      document.getElementById("loadMoreBtn").style.display = data.hasMore ? "block" : "none";
+    }
+
+    // First 10 posts (page load, login)
+    async function loadPosts() {
+      const response = await fetch("/posts");
+      const data = await response.json();
+
+      let html = "";
+
+      for (const post of data.posts) {
+        html += postHtml(post);
+      }
+
+      // No posts yet
+      if (data.posts.length === 0) {
+        html = `<p class="empty">No posts yet. Be the first to post!</p>`;
+      }
+
+      document.getElementById("feed").innerHTML = html;
+      updateLoadMore(data);
+
+      // Opened from a shared link (?post=5)? Scroll to that post and highlight it
+      const sharedId = new URLSearchParams(location.search).get("post");
+      const sharedPost = document.getElementById("post-" + sharedId);
+      if (sharedPost) {
+        sharedPost.classList.add("highlight");
+        sharedPost.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    // Next 10 older posts, added at the bottom of the feed
+    async function loadMore() {
+      const button = document.getElementById("loadMoreBtn");
+      button.disabled = true;          // no double click while loading
+      button.textContent = "Loading...";
+
+      const response = await fetch("/posts?before=" + nextBefore);
+      const data = await response.json();
+
+      let html = "";
+      for (const post of data.posts) {
+        html += postHtml(post);
+      }
+      document.getElementById("feed").insertAdjacentHTML("beforeend", html);
+
+      button.disabled = false;
+      button.textContent = "Load more";
+      updateLoadMore(data);
+    }
+
+    // Show the chosen image before posting
+    function showImagePreview() {
+      const file = document.getElementById("postImage").files[0];
+      if (!file) {
+        return;
+      }
+      document.getElementById("imagePreview").src = URL.createObjectURL(file);
+      document.getElementById("imagePreviewBox").style.display = "block";
+
+      // Photo chosen: the text box becomes a caption, the button says "Change photo"
+      document.getElementById("newPost").placeholder = "Write a caption...";
+      document.getElementById("photoBtnText").textContent = "Change photo";
+      document.getElementById("newPost").focus();
+    }
+
+    // Remove the chosen image
+    function removeImage() {
+      document.getElementById("postImage").value = "";
+      document.getElementById("imagePreviewBox").style.display = "none";
+      document.getElementById("newPost").placeholder = "What's on your mind?";
+      document.getElementById("photoBtnText").textContent = "Add photo";
+    }
+
+    async function createPost() {
+      const content = document.getElementById("newPost").value;
+      const file = document.getElementById("postImage").files[0];
+
+      // Text + image go together as FormData (not JSON, because of the file)
+      const formData = new FormData();
+      formData.append("content", content);
+      if (file) {
+        formData.append("image", file);
+      }
+
+      const response = await fetch("/posts", {
+        method: "POST",
+        body: formData, // no Content-Type header: the browser sets it for FormData
+      });
+
+      const data = await response.json();
+      showMsg("postMsg", data.message, response.ok);
+
+      if (response.ok) {
+        document.getElementById("newPost").value = "";
+        removeImage();
+
+        // Add the new post (from the API response) to the top of the feed, no reload
+        const feed = document.getElementById("feed");
+        const emptyMsg = feed.querySelector(".empty");
+        if (emptyMsg) {
+          emptyMsg.remove();
+        }
+        feed.insertAdjacentHTML("afterbegin", postHtml(data.post));
+      }
+    }
+
+    // Delete my post (asks first, then removes it from the screen without reload)
+    async function deletePost(postId) {
+      if (!confirm("Delete this post?")) {
+        return; // user clicked Cancel
+      }
+
+      const response = await fetch("/posts/" + postId, { method: "DELETE" });
+      const data = await response.json();
+      showMsg("postMsg", data.message, response.ok);
+
+      if (response.ok) {
+        document.getElementById("post-" + postId).remove();
+
+        // Feed became empty? Show the "No posts yet" message
+        const feed = document.getElementById("feed");
+        if (!feed.querySelector(".post")) {
+          feed.innerHTML = `<p class="empty">No posts yet. Be the first to post!</p>`;
+        }
+      }
+    }
+
+    async function likePost(postId) {
+      const response = await fetch("/posts/" + postId + "/like", { method: "POST" });
+      const data = await response.json();
+
+      if (!response.ok) {
+        showMsg("postMsg", data.message, false);
+        return;
+      }
+
+      // Update only this post's button and count (no full feed reload)
+      document.getElementById("like-btn-" + postId).innerText = data.liked ? "❤️" : "🤍 Like";
+      document.getElementById("like-count-" + postId).innerText = data.likeCount + " likes";
+    }
+
+    // ================= SHARE =================
+
+    let sharePostId = null; // which post the share screen is open for
+
+    // Open the share screen for one post
+    function openShareSheet(postId) {
+      sharePostId = postId;
+      const postBox = document.getElementById("post-" + postId);
+      document.getElementById("sharePostUser").innerText = postBox.querySelector(".post-head b").innerText;
+      document.getElementById("sharePostText").innerText = postBox.querySelector(".post-content").innerText;
+      document.getElementById("shareLinkInput").value = postLink(postId);
+
+      // "More" (phone's own share box) only where the browser supports it
+      document.getElementById("shareMore").style.display = navigator.share ? "flex" : "none";
+
+      document.getElementById("shareBox").style.display = "flex";
+    }
+
+    function closeShareSheet() {
+      document.getElementById("shareBox").style.display = "none";
+      sharePostId = null;
+    }
+
+    // Esc key closes the share screen
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeShareSheet();
+      }
+    });
+
+    // Link that opens this post: http://localhost:5000/?post=5
+    function postLink(postId) {
+      return location.origin + "/?post=" + postId;
+    }
+
+    // Text to send: "anurag on AmbakSocial: Hello"
+    function postText(postId) {
+      const postBox = document.getElementById("post-" + postId);
+      const username = postBox.querySelector(".post-head b").innerText;
+      const content = postBox.querySelector(".post-content").innerText || "shared a photo";
+      return username + " on AmbakSocial: " + content;
+    }
+
+    // Open the chosen app with the post text + link
+    async function shareTo(platform) {
+      const postId = sharePostId;
+      const link = postLink(postId);
+      const text = postText(postId);
+      const t = encodeURIComponent(text); // makes spaces and symbols safe inside a URL
+      const u = encodeURIComponent(link);
+
+      if (platform === "whatsapp") {
+        window.open("https://wa.me/?text=" + t + "%20" + u, "_blank");
+      } else if (platform === "email") {
+        const subject = encodeURIComponent("Check this post on AmbakSocial");
+        location.href = "mailto:?subject=" + subject + "&body=" + t + "%0A%0A" + u;
+      } else if (platform === "telegram") {
+        window.open("https://t.me/share/url?url=" + u + "&text=" + t, "_blank");
+      } else if (platform === "x") {
+        window.open("https://twitter.com/intent/tweet?text=" + t + "&url=" + u, "_blank");
+      } else if (platform === "facebook") {
+        window.open("https://www.facebook.com/sharer/sharer.php?u=" + u, "_blank");
+      } else if (platform === "copy") {
+        try {
+          await navigator.clipboard.writeText(text + " " + link);
+          showMsg("postMsg", "Link copied", true);
+        } catch (error) {
+          showMsg("postMsg", "Could not copy the link", false);
+          return;
+        }
+      } else if (platform === "other") {
+        try {
+          await navigator.share({ title: "AmbakSocial", text: text, url: link });
+        } catch (error) {
+          return; // user closed the share box, nothing was shared
+        }
+      }
+
+      closeShareSheet();
+      recordShare(postId, platform);
+    }
+
+    // Save the share in the database and update the count (no feed reload)
+    async function recordShare(postId, platform) {
+      const response = await fetch("/posts/" + postId + "/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        showMsg("postMsg", data.message, false);
+        return;
+      }
+      document.getElementById("share-count-" + postId).textContent = data.shareCount + " shares";
+    }
+
+    async function addComment(postId) {
+      const input = document.getElementById("comment-" + postId);
+      const text = input.value.trim();
+      if (text === "") {
+        return;
+      }
+
+      const response = await fetch("/posts/" + postId + "/comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showMsg("postMsg", data.message, false);
+        return;
+      }
+
+      // Show the new comment (from the API response) under that post, no reload
+      const c = data.comment;
+      document.getElementById("comments-" + postId).insertAdjacentHTML(
+        "beforeend",
+        `<p class="comment"><b>${safe(c.commentedBy)}</b> ${safe(c.text)}</p>`
+      );
+      input.value = "";
+    }
+
+    // ================= ON PAGE LOAD =================
+
+    async function start() {
+      const response = await fetch("/me");
+      if (response.ok) {
+        const data = await response.json();
+        openHome(data.username);
+      } else {
+        openLogin();
+      }
+    }
+
+    start();
+  </script>
+
+</body>
+</html>
