@@ -583,7 +583,15 @@
       openLogin();
       showMsg("loginMsg", "Logged out successfully", true);
     }
-
+  
+    function loginOnEnter(event) {
+      if (event.key === "Enter") {
+        login();
+      }
+    }
+    document.getElementById("loginId").addEventListener("keydown", loginOnEnter);
+    document.getElementById("loginPassword").addEventListener("keydown", loginOnEnter);
+    
     // ================= FORGOT PASSWORD =================
 
     let resetLoginId = "";

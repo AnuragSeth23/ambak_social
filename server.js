@@ -690,9 +690,19 @@ app.delete("/posts/:id", checkLogin, async (req, res) => {
     }
     const post = rows[0];
     await db.query("delete from posts where id = ?", [postId]);
+        let imageDeleted = false;
+    if (post.image) {
+      try {
+        await fs.promises.unlink(path.join(__dirname, post.image));   // join
+        imageDeleted = true;                                           // true
+      } catch (error) {
+        console.log("Could not delete image file:", error.message);
+      }
+    }
 
     res.json({
       message : "post deleted",
+      imageDeleted: imageDeleted,
       postId: Number(postId),
       deletedBy: req.session.username,
       post:{content:post.content, image: post.image, createsAy: post.created_at},
