@@ -87,7 +87,8 @@
     .delete-btn { width: auto; margin: 0 0 0 auto; padding: 6px 10px; background: none; border: none; font-size: 16px; border-radius: 10px; box-shadow: none; filter: grayscale(1) brightness(1.6); }
     .delete-btn:hover { background: #2a1519; filter: none; }
     .delete-btn:active { transform: none; box-shadow: none; }
-
+    .post-user { display: flex; flex-direction: column; line-height: 1.2; }
+    .post-time { font-size: 12px; color: var(--muted); }
     /* Avatar: white letter on black, with a white ring */
     .avatar { width: 40px; height: 40px; border-radius: 50%; background: #26262b; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700;
       box-shadow: 0 0 0 2px var(--card), 0 0 0 4px #ffffff; flex-shrink: 0; }
@@ -591,7 +592,7 @@
     }
     document.getElementById("loginId").addEventListener("keydown", loginOnEnter);
     document.getElementById("loginPassword").addEventListener("keydown", loginOnEnter);
-    
+
     // ================= FORGOT PASSWORD =================
 
     let resetLoginId = "";
@@ -684,6 +685,27 @@
       }
     }
 
+    // "2026-11-25T13:30:00.000Z" → "5 min ago"
+    function timeAgo(dateString) {
+       const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
+
+        if (seconds < 60) {
+        return "just now";
+      }
+
+       const minutes = Math.floor(seconds / 60);
+       if (minutes < 60) {
+        return minutes + " min ago";
+       }
+
+       const hours = Math.floor(minutes / 60);
+       if (hours < 24) {
+        return hours + " h ago";
+      }
+
+       const days = Math.floor(hours / 24);
+       return days + " d ago";
+      }
     // ================= POSTS =================
 
     // Build the HTML for one post (used by loadPosts and createPost)
@@ -699,10 +721,13 @@
       }
 
       return `
-        <div class="post" id="post-${post.id}">
+               <div class="post" id="post-${post.id}">
           <div class="post-head">
             <div class="avatar">${safe(post.username.charAt(0).toUpperCase())}</div>
-            <b>${safe(post.username)}</b>
+            <div class="post-user">
+              <b>${safe(post.username)}</b>
+              <span class="post-time">${timeAgo(post.created_at)}</span>
+            </div>
             ${post.username === currentUser ? `<button class="delete-btn" onclick="deletePost(${post.id})" title="Delete post">🗑️</button>` : ""}
           </div>
           <p class="post-content">${safe(post.content)}</p>
