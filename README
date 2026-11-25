@@ -1,0 +1,82 @@
+# AmbakSocial
+
+An Instagram-style social media web app built with **Node.js, Express, MySQL and vanilla JavaScript**.
+
+Sign up with an OTP, log in with your username, mobile number or email, then post text and photos, like, comment, share to other apps, and delete your own posts.
+
+## Features
+
+- **Signup with OTP**: 60-second resend wait, 3 wrong tries then lockout, 5-minute expiry (HTTP 429 on abuse)
+- **Login** with username, mobile number or email; **forgot / reset password** with OTP
+- **Session login** (express-session, httpOnly cookie); passwords hashed with **bcrypt**
+- **Posts** with text and/or a photo (Multer, JPG/PNG/GIF/WEBP, max 5 MB)
+- **Like / unlike**, **comments**, and **share** to WhatsApp, Email, Telegram, X, Facebook or copy link
+- **Delete your own post**: removes its likes, comments and shares too
+- **Pagination**: 10 posts at a time with a "Load more" button
+- **One API call per action**: like, comment, share, post and delete update only that part of the page
+- **Security**: parameterized SQL queries (no SQL injection), escaped output (no XSS), validation on frontend and backend, secrets in `.env`
+
+## Tech stack
+
+| Part     | Used                              |
+| -------- | --------------------------------- |
+| Backend  | Node.js, Express 5                |
+| Database | MySQL (mysql2 pool)               |
+| Auth     | express-session, bcryptjs         |
+| Uploads  | Multer                            |
+| Config   | dotenv                            |
+| Frontend | HTML, CSS, JavaScript (Fetch API) |
+
+## Run it on your computer
+
+1. Install **Node.js** and **MySQL**, and start MySQL.
+2. In MySQL Workbench, run `database.sql` (creates the `social_app` database and tables).
+3. Create a MySQL user for the app (as root):
+
+```sql
+CREATE USER 'social_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON social_app.* TO 'social_user'@'localhost';
+```
+
+4. In the project folder:
+
+```
+npm install
+copy .env.example .env
+```
+
+Open `.env` and fill in your database password and a long random `SESSION_SECRET`. 5. Start the server:
+
+```
+npm run dev
+```
+
+6. Open http://localhost:5000
+   > The OTP is printed in the server terminal (no SMS service in this demo).
+
+## API
+
+| Method | URL                  | What it does                   |
+| ------ | -------------------- | ------------------------------ |
+| POST   | `/send-otp`          | Check signup details, send OTP |
+| POST   | `/verify-otp`        | Check OTP, create the account  |
+| POST   | `/login`             | Log in, start a session        |
+| POST   | `/forgot-password`   | Send a password reset OTP      |
+| POST   | `/reset-password`    | Check OTP, set a new password  |
+| GET    | `/me`                | Who is logged in               |
+| POST   | `/logout`            | End the session                |
+| GET    | `/posts?before=`     | Feed, 10 posts at a time       |
+| POST   | `/posts`             | New post (text and/or photo)   |
+| DELETE | `/posts/:id`         | Delete my post                 |
+| POST   | `/posts/:id/like`    | Like or unlike                 |
+| POST   | `/posts/:id/comment` | Add a comment                  |
+| POST   | `/posts/:id/share`   | Record a share                 |
+
+## Database
+
+5 tables: `users`, `posts`, `likes`, `comments`, `shares`.
+Foreign keys with `ON DELETE CASCADE`, and `UNIQUE(user_id, post_id)` so a user can like or share a post only once.
+
+## Author
+
+**Anurag Seth**
