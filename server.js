@@ -169,7 +169,6 @@ app.post("/send-otp", async (req, res) => {
     if (usernameExists.length > 0) {
       return res.status(400).json({ field: "username", message: "Username already exists" });
     }
-
     const [mobileExists] = await db.query("SELECT id FROM users WHERE mobile = ?", [mobile]);
     if (mobileExists.length > 0) {
       return res.status(400).json({ field: "mobile", message: "Mobile number is already registered" });
@@ -716,6 +715,60 @@ app.delete("/posts/:id", checkLogin, async (req, res) => {
   }
 });
 
+//------------------EDIT POSTS -----------------
+
+// Edit my post (change its text)
+app.put("/posts/:id", checkLogin, async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.session.userId;
+    const content = (req.body.content || "").trim();
+
+    if (content === "") {
+      return res.status(400).json({ message: "Post cannot be empty" });
+    }
+
+    // 1. Pehle purana text nikalo (sirf meri post)
+    const [rows] = await db.query(
+      "SELECT content FROM posts WHERE id = ? AND user_id = ?",
+      [postId, userId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    const oldContent = rows[0].content || "";
+
+    // 2. Text same hai to DB update ki zarurat nahi
+    if (oldContent === content) {
+      return res.json({
+        message: "No changes",
+        postId: Number(postId),
+        changed: false,
+        content: content,
+      });
+    }
+
+    // 3. Naya text save karo
+    await db.query("UPDATE posts SET content = ? WHERE id = ?", [content, postId]);
+
+    console.log(req.session.username + " edited post " + postId);
+
+    // 4. Pehle kya tha, ab kya hai
+    res.json({
+      message: "Post updated",
+      postId: Number(postId),
+      changed: true,
+      editedBy: req.session.username,
+      editedAt: new Date(),
+      before: oldContent,
+      after: content,
+      content: content,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 // ---------------- SERVER START ----------------
 
 app.listen(PORT, () => {

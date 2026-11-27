@@ -87,6 +87,14 @@
     .delete-btn { width: auto; margin: 0 0 0 auto; padding: 6px 10px; background: none; border: none; font-size: 16px; border-radius: 10px; box-shadow: none; filter: grayscale(1) brightness(1.6); }
     .delete-btn:hover { background: #2a1519; filter: none; }
     .delete-btn:active { transform: none; box-shadow: none; }
+    .edit-btn { width: auto; margin: 0 0 0 auto; padding: 6px 10px; background: none; border: none; font-size: 16px; border-radius: 10px; box-shadow: none; filter: grayscale(1) brightness(1.6); }
+    .edit-btn:hover { background: var(--field); filter: none; }
+    .edit-btn:active { transform: none; box-shadow: none; }
+    .edit-btn + .delete-btn { margin-left: 0; }
+    .edit-box { margin: 12px 0; }
+    .edit-actions { display: flex; gap: 8px; }
+    .edit-actions button { width: auto; margin: 6px 0 0; padding: 8px 18px; }
+    .edit-actions .cancel-btn { background: transparent; color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
     .post-user { display: flex; flex-direction: column; line-height: 1.2; }
     .post-time { font-size: 12px; color: var(--muted); }
     /* Avatar: white letter on black, with a white ring */
@@ -728,9 +736,9 @@
               <b>${safe(post.username)}</b>
               <span class="post-time">${timeAgo(post.created_at)}</span>
             </div>
-            ${post.username === currentUser ? `<button class="delete-btn" onclick="deletePost(${post.id})" title="Delete post">🗑️</button>` : ""}
-          </div>
-          <p class="post-content">${safe(post.content)}</p>
+             ${post.username === currentUser ? `<button class="edit-btn" onclick="editPost(${post.id})" title="Edit post">✏️</button><button class="delete-btn" onclick="deletePost(${post.id})" title="Delete post">🗑️</button>` : ""}   
+           </div>
+         <p class="post-content" id="content-${post.id}">${safe(post.content)}</p>
           ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image">` : ""}
           <div class="actions">
             <button class="like-btn" id="like-btn-${post.id}" onclick="likePost(${post.id})">${likeText}</button>
@@ -858,6 +866,53 @@
         feed.insertAdjacentHTML("afterbegin", postHtml(data.post));
       }
     }
+   
+    // ✏️ dabaya: text chhupao, purane text ke saath box dikhao
+function editPost(postId) {
+  if (document.getElementById("edit-box-" + postId)) {
+    return; // box pehle se khula hai
+  }
+  const contentEl = document.getElementById("content-" + postId);
+  contentEl.style.display = "none";
+
+  contentEl.insertAdjacentHTML("afterend", `
+    <div class="edit-box" id="edit-box-${postId}">
+      <textarea id="edit-text-${postId}" rows="3"></textarea>
+      <div class="edit-actions">
+        <button onclick="saveEdit(${postId})">Save</button>
+        <button class="cancel-btn" onclick="cancelEdit(${postId})">Cancel</button>
+      </div>
+    </div>`);
+
+  const box = document.getElementById("edit-text-" + postId);
+  box.value = contentEl.innerText; // purana text box mein
+  box.focus();
+}
+
+// Cancel: box hatao, text wapas dikhao
+function cancelEdit(postId) {
+  document.getElementById("edit-box-" + postId).remove();
+  document.getElementById("content-" + postId).style.display = "";
+}
+
+// Save: server ko PUT bhejo, phir post pe naya text dikhao
+async function saveEdit(postId) {
+  const content = document.getElementById("edit-text-" + postId).value;
+
+  const response = await fetch("/posts/" + postId, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  const data = await response.json();
+  showMsg("postMsg", data.message, response.ok);
+
+  if (response.ok) {
+    document.getElementById("content-" + postId).innerText = data.content;
+    cancelEdit(postId);
+  }
+}
+
 
     // Delete my post (asks first, then removes it from the screen without reload)
     async function deletePost(postId) {
